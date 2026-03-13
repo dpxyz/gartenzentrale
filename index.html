@@ -21,8 +21,14 @@
             background: #000;
         }
 
+        /* iPhone Safari: fill available height correctly */
+        @supports (height: 100dvh) {
+            body, html { height: 100dvh; }
+        }
+
         #app {
             position: relative; width: 100vw; height: 100vh;
+            height: 100dvh;
             display: flex; align-items: center; justify-content: center;
             overflow: hidden;
             background: #000;
@@ -48,7 +54,9 @@
 
         /* UI Elements */
         #ui-layer {
-            position: absolute; bottom: 10vh; width: 100%;
+            position: absolute;
+            bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+            width: 100%;
             display: flex; justify-content: center; z-index: 100;
             pointer-events: none;
         }
