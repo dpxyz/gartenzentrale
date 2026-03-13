@@ -141,6 +141,9 @@
             setInterval(() => { updateUI(mock[d]); d = (d + 1) % 4; }, 8000);
             updateUI(mock[0]);
         } else {
+            // Sofort State 1 zeigen (Fallback), damit nie schwarzer Screen
+            updateUI({ state: 1, message: "Die Zentrale schläft ..." });
+
             async function poll() {
                 try {
                     const r = await fetch('/api/state');
