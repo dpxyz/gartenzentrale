@@ -55,7 +55,7 @@ export default {
         message = "Anna bringt die Zentrale zum Blühen.";
       } else if (daveStatus === "on" && annaStatus === "on") {
         state = 4;
-        message = "Gartenzentrale: Volle Power! Anna & Dave sind da.";
+        message = "Volle Power! Dave & Anna sind da.";
       }
 
       const responseBody = JSON.stringify({ state, message });

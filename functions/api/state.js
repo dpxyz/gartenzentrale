@@ -22,7 +22,7 @@ export async function onRequestGet({ env }) {
         message = "Anna bringt die Zentrale zum Blühen.";
     } else if (daveStatus === "on" && annaStatus === "on") {
         state = 4;
-        message = "Gartenzentrale: Volle Power! Anna & Dave sind da.";
+        message = "Volle Power! Dave & Anna sind da.";
     }
 
     return new Response(JSON.stringify({ state, message }), { headers: corsHeaders });
