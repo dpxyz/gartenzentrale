@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gartenzentrale - Cinematic Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-sleep: #121626;
+            --bg-dave: #1a2a24;
+            --bg-anna: #fff4e0;
+            --bg-both: #ffd89b;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; font-family: 'Outfit', sans-serif;
+            background: #000;
+        }
+
+        #app {
+            position: relative; width: 100vw; height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+            background: #000;
+        }
+
+        /* Video Backdrop System */
+        .video-viewport {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+        }
+
+        .video-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            pointer-events: none;
+        }
+
+        .video-layer.active {
+            opacity: 1;
+        }
+
+        /* UI Elements */
+        #ui-layer {
+            position: absolute; bottom: 8vh; width: 100%;
+            display: flex; justify-content: center; z-index: 100;
+            pointer-events: none;
+        }
+
+        .message-pill {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 40px;
+            padding: 18px 45px;
+            color: white; font-size: 1.1rem; font-weight: 400;
+            text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            opacity: 0; transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            letter-spacing: 0.5px;
+        }
+
+        .message-pill.visible { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="video-viewport">
+            <video id="vid-1" class="video-layer" loop muted playsinline>
+                <source src="assets/video/state_sleep.mp4" type="video/mp4">
+            </video>
+            <video id="vid-2" class="video-layer" loop muted playsinline>
+                <source src="assets/video/state_dave.mp4" type="video/mp4">
+            </video>
+            <video id="vid-3" class="video-layer" loop muted playsinline>
+                <source src="assets/video/state_anna.mp4" type="video/mp4">
+            </video>
+            <video id="vid-4" class="video-layer" loop muted playsinline>
+                <source src="assets/video/state_both.mp4" type="video/mp4">
+            </video>
+        </div>
+
+        <div id="ui-layer">
+            <div class="message-pill" id="message">Gartenzentrale lädt...</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script>
+        let currentStatus = -1;
+
+        // --- Transition Logic ---
+        function updateUI(data) {
+            const { state, message } = data;
+            if (state === currentStatus) return;
+
+            const oldVid = document.getElementById(`vid-${currentStatus}`);
+            const newVid = document.getElementById(`vid-${state}`);
+            
+            // Handle Transitions
+            if (oldVid) {
+                oldVid.classList.remove('active');
+                // Optional: Pause after fade out
+                setTimeout(() => { if (currentStatus !== state) oldVid.pause(); }, 1500);
+            }
+
+            currentStatus = state;
+            const msgPill = document.getElementById('message');
+
+            // Play and Show New Video
+            if (newVid) {
+                newVid.play().catch(e => console.log("Autoplay blocked or video missing", e));
+                newVid.classList.add('active');
+            }
+
+            // Message Animation
+            msgPill.classList.remove('visible');
+            setTimeout(() => {
+                msgPill.innerText = message;
+                msgPill.classList.add('visible');
+            }, 600);
+        }
+
+        // --- Controller ---
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('demo') === 'true') {
+            let d = 0;
+            const mock = [
+                { state: 1, message: "Die Zentrale schläft ..." },
+                { state: 2, message: "Dave optimiert die Zentrale." },
+                { state: 3, message: "Anna bringt die Zentrale zum Blühen." },
+                { state: 4, message: "Gartenzentrale: Volle Power! Anna & Dave sind da." }
+            ];
+            setInterval(() => { updateUI(mock[d]); d = (d + 1) % 4; }, 8000);
+            updateUI(mock[0]);
+        } else {
+            async function poll() {
+                try {
+                    const r = await fetch('/api/state');
+                    if (r.ok) updateUI(await r.json());
+                } catch(e) { console.error(e); }
+            }
+            poll(); setInterval(poll, 15000);
+        }
+
+        // Global Click to unmute/start if needed (Browsers policy)
+        document.body.addEventListener('click', () => {
+            const activeVid = document.getElementById(`vid-${currentStatus}`);
+            if (activeVid) activeVid.play();
+        }, { once: true });
+    </script>
+</body>
+</html>
